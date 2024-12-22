@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tirage au Sort des Cadeaux</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            justify-items: center;
+            max-width: 600px;
+            margin: auto;
+        }
+        .number {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid #2980b9;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .number:hover {
+            background-color: #2980b9;
+        }
+        .number.clicked {
+            background-color: #27ae60;
+            border-color: #229954;
+        }
+    </style>
+    <!-- Ajouter les scripts Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js"></script>
+</head>
+<body>
+    <h1>Tirage au Sort des Cadeaux</h1>
+    <div class="grid">
+        <!-- Les chiffres seront générés dynamiquement ici -->
+    </div>
+
+    <script>
+        // Importer Firebase
+        import { initializeApp } from "firebase/app";
+        import { getDatabase, ref, get, set } from "firebase/database";
+
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDOND2dGlwY1ZhH9iW2P5-diOnMP05zQ-s",
+            authDomain: "tirage-au-sort-7a73a.firebaseapp.com",
+            databaseURL: "https://tirage-au-sort-7a73a-default-rtdb.firebaseio.com",
+            projectId: "tirage-au-sort-7a73a",
+            storageBucket: "tirage-au-sort-7a73a.firebasestorage.app",
+            messagingSenderId: "144805392565",
+            appId: "1:144805392565:web:d769283894967b15b4cefc",
+            measurementId: "G-0ZBE1EVKFS"
+        };
+
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Tableau des noms associés aux chiffres
+        const names = [
+            "Obed", "Sylvie", "Ezechiel", "Myriam", "Glody",
+            "Yasmine", "Ketsia", "Prisca", "Marc", "Josue"
+        ];
+
+        const grid = document.querySelector('.grid'); // Sélection de la grille
+
+        // Création des cases avec les chiffres
+        for (let i = 1; i <= names.length; i++) {
+            const numberDiv = document.createElement('div');
+            numberDiv.classList.add('number');
+            numberDiv.textContent = i; // Affiche le chiffre
+            numberDiv.addEventListener('click', () => revealName(numberDiv, i));
+            grid.appendChild(numberDiv);
+        }
+
+        // Fonction pour révéler le nom derrière un chiffre
+        function revealName(element, index) {
+            const dbRef = ref(database, `tirage/${index}`);
+            
+            // Vérifier si le chiffre a déjà été choisi
+            get(dbRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    alert(`Ce chiffre a déjà été choisi par ${snapshot.val()}.`);
+                } else {
+                    // Enregistrer dans Firebase
+                    set(dbRef, names[index - 1]).then(() => {
+                        element.textContent = names[index - 1]; // Révèle le nom correspondant
+                        element.classList.add('clicked'); // Change le style après clic
+                    }).catch((error) => {
+                        console.error("Erreur lors de l'enregistrement dans Firebase : ", error);
+                    });
+                }
+            }).catch((error) => {
+                console.error("Erreur lors de la récupération des données Firebase : ", error);
+            });
+        }
+    </script>
+</body>
+</html>
